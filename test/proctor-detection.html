@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线编程考试 - 防作弊检测模拟</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* Warning flash overlay */
+  #warning-flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  #warning-flash.active { opacity: 1; }
+
+  /* Top bar */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 10px 20px;
+    height: 50px;
+  }
+  .top-bar .title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #c9d1d9;
+  }
+  .top-bar .status {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .status-badge.ok { background: #0d1f0d; color: #3fb950; border: 1px solid #238636; }
+  .status-badge.warn { background: #2a1f00; color: #d29922; border: 1px solid #d29922; }
+  .status-badge.danger { background: #2d0000; color: #f85149; border: 1px solid #f85149; }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block;
+  }
+  .status-badge.ok .status-dot { background: #3fb950; }
+  .status-badge.warn .status-dot { background: #d29922; }
+  .status-badge.danger .status-dot { background: #f85149; }
+  .violation-count {
+    font-size: 13px;
+    color: #f85149;
+    font-weight: 600;
+  }
+  .fullscreen-btn {
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1px solid #238636;
+    background: #238636;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .fullscreen-btn:hover { background: #2ea043; }
+
+  /* Main layout */
+  .main-layout {
+    display: flex;
+    height: calc(100vh - 50px);
+  }
+
+  /* Left panel - exam content */
+  .exam-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #30363d;
+    min-width: 0;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 0;
+    background: #1c2128;
+    border-bottom: 1px solid #30363d;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    border-right: 1px solid #30363d;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-label { font-size: 11px; color: #8b949e; margin-bottom: 4px; }
+  .stat-value { font-size: 20px; font-weight: 700; color: #c9d1d9; }
+  .stat-value.danger { color: #f85149; }
+  .stat-value.warn { color: #d29922; }
+
+  /* Question area */
+  .question-area {
+    padding: 20px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #30363d;
+    overflow-y: auto;
+    max-height: 40%;
+  }
+  .question-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #c9d1d9;
+    margin-bottom: 12px;
+  }
+  .difficulty {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-left: 8px;
+    font-weight: 500;
+  }
+  .difficulty.medium { background: #2a1f00; color: #d29922; }
+  .question-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #8b949e;
+  }
+  .question-desc code {
+    background: #2d333b;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #c9d1d9;
+  }
+  .question-desc pre {
+    background: #2d333b;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 10px 0;
+    overflow-x: auto;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #c9d1d9;
+    user-select: text;
+  }
+
+  /* Code editor area */
+  .editor-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 20px;
+    background: #1c2128;
+    border-bottom: 1px solid #30363d;
+    flex-shrink: 0;
+  }
+  .editor-header span { font-size: 13px; color: #8b949e; }
+  .editor-textarea {
+    flex: 1;
+    width: 100%;
+    background: #0d1117;
+    color: #c9d1d9;
+    border: none;
+    padding: 16px 20px;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    tab-size: 4;
+    user-select: text;
+  }
+
+  /* Right panel - violation log */
+  .log-panel {
+    width: 360px;
+    display: flex;
+    flex-direction: column;
+    background: #161b22;
+    flex-shrink: 0;
+  }
+  .log-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #30363d;
+    font-size: 14px;
+    font-weight: 600;
+    color: #c9d1d9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .log-header .clear-btn {
+    font-size: 12px;
+    color: #8b949e;
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .log-header .clear-btn:hover { background: #30363d; color: #c9d1d9; }
+  .log-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .log-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #21262d;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .log-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .log-icon.error { background: #2d0000; color: #f85149; }
+  .log-icon.warn { background: #2a1f00; color: #d29922; }
+  .log-icon.info { background: #0c2d6b; color: #58a6ff; }
+  .log-icon.ok { background: #0d1f0d; color: #3fb950; }
+  .log-content { flex: 1; min-width: 0; }
+  .log-type {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .log-type.error { color: #f85149; }
+  .log-type.warn { color: #d29922; }
+  .log-type.info { color: #58a6ff; }
+  .log-type.ok { color: #3fb950; }
+  .log-detail {
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.4;
+  }
+  .log-time {
+    font-size: 11px;
+    color: #484f58;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Detection list panel */
+  .detection-list {
+    border-top: 1px solid #30363d;
+    padding: 12px 16px;
+    flex-shrink: 0;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .detection-list h4 {
+    font-size: 12px;
+    color: #8b949e;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .detection-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 12px;
+  }
+  .detection-name { color: #c9d1d9; }
+  .detection-status {
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .detection-status.active { background: #0d1f0d; color: #3fb950; }
+  .detection-status.triggered { background: #2d0000; color: #f85149; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+  /* Warning banner */
+  .warning-banner {
+    position: fixed;
+    top: 50px;
+    left: 0;
+    right: 0;
+    background: #2d0000;
+    border-bottom: 2px solid #f85149;
+    color: #f85149;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 100;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+  }
+  .warning-banner.show { transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="warning-flash"></div>
+
+<div class="warning-banner" id="warningBanner">
+  &#9888; 检测到异常行为！您的操作已被记录，多次违规可能导致考试无效
+</div>
+
+<div class="top-bar">
+  <div class="title">&#128187; 在线编程考试 — 防作弊检测模拟器</div>
+  <div class="status">
+    <span class="violation-count" id="violationCountText">违规次数: 0</span>
+    <span class="status-badge ok" id="statusBadge">
+      <span class="status-dot"></span>
+      <span id="statusText">监控正常</span>
+    </span>
+    <button class="fullscreen-btn" id="fullscreenBtn" onclick="enterFullscreen()">进入全屏模式</button>
+  </div>
+</div>
+
+<div class="main-layout">
+  <!-- Left: Exam content -->
+  <div class="exam-panel">
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-label">页签切换</div>
+        <div class="stat-value" id="statTabSwitch">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">窗口失焦</div>
+        <div class="stat-value" id="statBlur">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">鼠标离开</div>
+        <div class="stat-value" id="statMouseLeave">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">离开总时长</div>
+        <div class="stat-value" id="statAwayTime">0s</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">窗口缩放</div>
+        <div class="stat-value" id="statResize">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">快捷键拦截</div>
+        <div class="stat-value" id="statShortcut">0</div>
+      </div>
+    </div>
+
+    <div class="question-area">
+      <div class="question-title">
+        第 1 题: 两数之和 <span class="difficulty medium">中等</span>
+      </div>
+      <div class="question-desc">
+        <p>给定一个整数数组 <code>nums</code> 和一个整数目标值 <code>target</code>，请你在该数组中找出和为目标值 <code>target</code> 的那两个整数，并返回它们的数组下标。</p>
+        <br>
+        <p>你可以假设每种输入只会对应一个答案，并且你不能使用两次相同的元素。你可以按任意顺序返回答案。</p>
+        <br>
+        <p><strong>示例：</strong></p>
+        <pre>输入: nums = [2, 7, 11, 15], target = 9
+输出: [0, 1]
+解释: 因为 nums[0] + nums[1] == 9，返回 [0, 1]</pre>
+        <p><strong>提示：</strong></p>
+        <p>2 &lt;= nums.length &lt;= 10<sup>4</sup>，-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></p>
+      </div>
+    </div>
+
+    <div class="editor-area">
+      <div class="editor-header">
+        <span>Python 3</span>
+        <span style="font-size:11px;color:#484f58">粘贴/复制已被监控</span>
+      </div>
+      <textarea class="editor-textarea" id="codeEditor" spellcheck="false" placeholder="# 在此输入你的代码...
+def twoSum(nums, target):
+    pass">def twoSum(nums, target):
+    # 在此编写你的解题代码
+    pass</textarea>
+    </div>
+  </div>
+
+  <!-- Right: Detection log -->
+  <div class="log-panel">
+    <div class="log-header">
+      <span>&#128270; 检测日志</span>
+      <button class="clear-btn" onclick="clearLogs()">清空</button>
+    </div>
+    <div class="log-list" id="logList"></div>
+
+    <div class="detection-list">
+      <h4>&#128737; 已启用检测项</h4>
+      <div id="detectionItems"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict'
+
+  // ============================
+  // State
+  // ============================
+  const state = {
+    violationCount: 0,
+    tabSwitchCount: 0,
+    blurCount: 0,
+    mouseLeaveCount: 0,
+    resizeCount: 0,
+    shortcutCount: 0,
+    awayStartTime: null,
+    totalAwayMs: 0,
+    isFullscreen: false,
+    lastWidth: window.outerWidth,
+    lastHeight: window.outerHeight,
+    devtoolsOpen: false,
+    logs: []
+  }
+
+  const detections = [
+    { id: 'visibility', name: 'Page Visibility API', triggered: false },
+    { id: 'blur', name: '窗口失焦检测 (blur/focus)', triggered: false },
+    { id: 'mouseleave', name: '鼠标离开检测 (mouseleave)', triggered: false },
+    { id: 'fullscreen', name: '全屏退出检测', triggered: false },
+    { id: 'copypaste', name: '复制/粘贴/剪切拦截', triggered: false },
+    { id: 'contextmenu', name: '右键菜单拦截', triggered: false },
+    { id: 'shortcut', name: '快捷键拦截', triggered: false },
+    { id: 'devtools', name: 'DevTools 检测', triggered: false },
+    { id: 'resize', name: '窗口大小变化检测', triggered: false },
+    { id: 'beforeunload', name: '页面离开拦截', triggered: false },
+    { id: 'multiscreen', name: '多屏幕检测', triggered: false },
+    { id: 'awaytime', name: '离开时长统计', triggered: false },
+  ]
+
+  // ============================
+  // UI Helpers
+  // ============================
+  function $(id) { return document.getElementById(id) }
+
+  function now() {
+    const d = new Date()
+    return d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3, '0')
+  }
+
+  function addLog(type, level, detail) {
+    const icons = { error: '!', warn: '!', info: 'i', ok: '\u2713' }
+    const log = { type, level, detail, time: now() }
+    state.logs.unshift(log)
+
+    const logList = $('logList')
+    const item = document.createElement('div')
+    item.className = 'log-item'
+    item.innerHTML = `
+      <div class="log-icon ${level}">${icons[level]}</div>
+      <div class="log-content">
+        <div class="log-type ${level}">${type}</div>
+        <div class="log-detail">${detail}</div>
+      </div>
+      <div class="log-time">${log.time}</div>
+    `
+    logList.insertBefore(item, logList.firstChild)
+
+    // Keep max 200 entries
+    while (logList.children.length > 200) {
+      logList.removeChild(logList.lastChild)
+    }
+  }
+
+  function recordViolation(detectionId, type, detail) {
+    state.violationCount++
+    $('violationCountText').textContent = `违规次数: ${state.violationCount}`
+    addLog(type, 'error', detail)
+    flashWarning()
+    markDetection(detectionId)
+    updateStatusBadge()
+  }
+
+  function flashWarning() {
+    const flash = $('warning-flash')
+    const banner = $('warningBanner')
+    flash.classList.add('active')
+    banner.classList.add('show')
+    setTimeout(() => flash.classList.remove('active'), 500)
+    setTimeout(() => banner.classList.remove('show'), 3000)
+  }
+
+  function updateStatusBadge() {
+    const badge = $('statusBadge')
+    const text = $('statusText')
+    if (state.violationCount >= 5) {
+      badge.className = 'status-badge danger'
+      text.textContent = '严重违规'
+    } else if (state.violationCount >= 2) {
+      badge.className = 'status-badge warn'
+      text.textContent = '存在异常'
+    } else if (state.violationCount >= 1) {
+      badge.className = 'status-badge warn'
+      text.textContent = '已检测到违规'
+    } else {
+      badge.className = 'status-badge ok'
+      text.textContent = '监控正常'
+    }
+  }
+
+  function updateStat(id, value) {
+    const el = $(id)
+    el.textContent = value
+    const num = typeof value === 'string' ? parseInt(value) : value
+    if (num > 0) el.classList.add('danger')
+  }
+
+  function markDetection(detectionId) {
+    const d = detections.find(d => d.id === detectionId)
+    if (d) d.triggered = true
+    renderDetections()
+  }
+
+  function renderDetections() {
+    const container = $('detectionItems')
+    container.innerHTML = detections.map(d => `
+      <div class="detection-item">
+        <span class="detection-name">${d.name}</span>
+        <span class="detection-status ${d.triggered ? 'triggered' : 'active'}">
+          ${d.triggered ? '已触发' : '监控中'}
+        </span>
+      </div>
+    `).join('')
+  }
+
+  window.clearLogs = function() {
+    $('logList').innerHTML = ''
+    state.logs = []
+  }
+
+  // ============================
+  // 1. Page Visibility API
+  // ============================
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      state.tabSwitchCount++
+      state.awayStartTime = Date.now()
+      updateStat('statTabSwitch', state.tabSwitchCount)
+      recordViolation('visibility', '页签切换', `检测到页面被隐藏 (第 ${state.tabSwitchCount} 次)，document.visibilityState = "${document.visibilityState}"`)
+    } else {
+      if (state.awayStartTime) {
+        const away = Date.now() - state.awayStartTime
+        state.totalAwayMs += away
+        state.awayStartTime = null
+        updateStat('statAwayTime', (state.totalAwayMs / 1000).toFixed(1) + 's')
+        markDetection('awaytime')
+        addLog('页面恢复', 'info', `页面重新可见，本次离开 ${(away / 1000).toFixed(1)}s`)
+      }
+    }
+  })
+
+  // ============================
+  // 2. Window blur / focus
+  // ============================
+  window.addEventListener('blur', function() {
+    state.blurCount++
+    updateStat('statBlur', state.blurCount)
+    if (!state.awayStartTime) state.awayStartTime = Date.now()
+    recordViolation('blur', '窗口失焦', `浏览器窗口失去焦点 (第 ${state.blurCount} 次)`)
+  })
+
+  window.addEventListener('focus', function() {
+    if (state.awayStartTime) {
+      const away = Date.now() - state.awayStartTime
+      state.totalAwayMs += away
+      state.awayStartTime = null
+      updateStat('statAwayTime', (state.totalAwayMs / 1000).toFixed(1) + 's')
+      markDetection('awaytime')
+      addLog('窗口恢复', 'ok', `窗口重新获得焦点，离开 ${(away / 1000).toFixed(1)}s`)
+    }
+  })
+
+  // ============================
+  // 3. Mouse leave / enter
+  // ============================
+  document.addEventListener('mouseleave', function(e) {
+    state.mouseLeaveCount++
+    updateStat('statMouseLeave', state.mouseLeaveCount)
+    recordViolation('mouseleave', '鼠标离开', `鼠标离开页面区域 (第 ${state.mouseLeaveCount} 次)，坐标: (${e.clientX}, ${e.clientY})`)
+  })
+
+  document.addEventListener('mouseenter', function() {
+    addLog('鼠标返回', 'ok', '鼠标回到页面区域')
+  })
+
+  // ============================
+  // 4. Fullscreen exit detection
+  // ============================
+  document.addEventListener('fullscreenchange', function() {
+    if (document.fullscreenElement) {
+      state.isFullscreen = true
+      addLog('进入全屏', 'info', '已进入全屏模式')
+      $('fullscreenBtn').textContent = '退出全屏'
+    } else {
+      if (state.isFullscreen) {
+        state.isFullscreen = false
+        recordViolation('fullscreen', '退出全屏', '检测到退出全屏模式 — 部分平台(CodeSignal/Codility)会将此记录为违规')
+        $('fullscreenBtn').textContent = '进入全屏模式'
+      }
+    }
+  })
+
+  window.enterFullscreen = function() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      document.documentElement.requestFullscreen().catch(err => {
+        addLog('全屏失败', 'warn', '无法进入全屏: ' + err.message)
+      })
+    }
+  }
+
+  // ============================
+  // 5. Copy / Paste / Cut
+  // ============================
+  document.addEventListener('copy', function(e) {
+    recordViolation('copypaste', '复制操作', '检测到复制操作 (Ctrl+C / Cmd+C)')
+    // Don't prevent - just detect
+  })
+
+  document.addEventListener('cut', function(e) {
+    recordViolation('copypaste', '剪切操作', '检测到剪切操作 (Ctrl+X / Cmd+X)')
+  })
+
+  document.addEventListener('paste', function(e) {
+    const text = (e.clipboardData || window.clipboardData)?.getData('text') || ''
+    const preview = text.length > 50 ? text.substring(0, 50) + '...' : text
+    recordViolation('copypaste', '粘贴操作', `检测到粘贴操作，内容长度: ${text.length} 字符${preview ? '，内容预览: "' + preview.replace(/</g, '&lt;') + '"' : ''}`)
+  })
+
+  // ============================
+  // 6. Right-click / Context menu
+  // ============================
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault()
+    recordViolation('contextmenu', '右键菜单', `检测到右键点击，坐标: (${e.clientX}, ${e.clientY}) — 已阻止`)
+    return false
+  })
+
+  // ============================
+  // 7. Keyboard shortcut detection
+  // ============================
+  const suspiciousKeys = {
+    'F12': 'DevTools 快捷键',
+    'F5': '刷新页面',
+    'F11': '全屏切换',
+  }
+
+  document.addEventListener('keydown', function(e) {
+    const ctrl = e.ctrlKey || e.metaKey
+    const alt = e.altKey
+    const shift = e.shiftKey
+    const key = e.key
+
+    let violation = null
+
+    // F-key detection
+    if (suspiciousKeys[key]) {
+      violation = suspiciousKeys[key]
+    }
+
+    // Ctrl/Cmd + Shift + I (DevTools)
+    if (ctrl && shift && (key === 'I' || key === 'i')) {
+      violation = 'DevTools (Ctrl+Shift+I)'
+      e.preventDefault()
+    }
+
+    // Ctrl/Cmd + Shift + J (Console)
+    if (ctrl && shift && (key === 'J' || key === 'j')) {
+      violation = 'Console (Ctrl+Shift+J)'
+      e.preventDefault()
+    }
+
+    // Ctrl/Cmd + Shift + C (Inspect Element)
+    if (ctrl && shift && (key === 'C' || key === 'c')) {
+      violation = '元素审查 (Ctrl+Shift+C)'
+      e.preventDefault()
+    }
+
+    // Ctrl/Cmd + U (View Source)
+    if (ctrl && (key === 'U' || key === 'u')) {
+      violation = '查看源代码 (Ctrl+U)'
+      e.preventDefault()
+    }
+
+    // Alt+Tab (detectable only via keydown, not the actual switch)
+    if (alt && key === 'Tab') {
+      violation = '窗口切换 (Alt+Tab)'
+    }
+
+    // Ctrl+Tab (tab switch)
+    if (ctrl && key === 'Tab') {
+      violation = '标签页切换 (Ctrl+Tab)'
+    }
+
+    // Cmd+Tab (macOS) - limited detection
+    if (e.metaKey && key === 'Tab') {
+      violation = '应用切换 (Cmd+Tab)'
+    }
+
+    // Ctrl+W (close tab)
+    if (ctrl && (key === 'W' || key === 'w') && !shift) {
+      violation = '关闭标签页 (Ctrl+W)'
+      e.preventDefault()
+    }
+
+    // Ctrl+N (new window)
+    if (ctrl && (key === 'N' || key === 'n') && !shift) {
+      violation = '新建窗口 (Ctrl+N)'
+    }
+
+    // Ctrl+T (new tab)
+    if (ctrl && (key === 'T' || key === 't') && !shift) {
+      violation = '新建标签页 (Ctrl+T)'
+    }
+
+    // Print Screen
+    if (key === 'PrintScreen') {
+      violation = '截屏 (PrintScreen)'
+    }
+
+    if (violation) {
+      state.shortcutCount++
+      updateStat('statShortcut', state.shortcutCount)
+      const mods = []
+      if (ctrl) mods.push(navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl')
+      if (alt) mods.push('Alt')
+      if (shift) mods.push('Shift')
+      mods.push(key)
+      recordViolation('shortcut', '快捷键拦截', `${violation} — 按键: ${mods.join('+')}`)
+    }
+  })
+
+  // ============================
+  // 8. DevTools detection
+  // ============================
+  // Method 1: Window size difference
+  let devtoolsCheckInterval = setInterval(function() {
+    const widthDiff = window.outerWidth - window.innerWidth
+    const heightDiff = window.outerHeight - window.innerHeight
+    const threshold = 160
+
+    const possiblyOpen = widthDiff > threshold || heightDiff > threshold
+
+    if (possiblyOpen && !state.devtoolsOpen) {
+      state.devtoolsOpen = true
+      recordViolation('devtools', 'DevTools 检测', `检测到可能打开了开发者工具 — 窗口尺寸差异: 宽${widthDiff}px, 高${heightDiff}px (阈值: ${threshold}px)`)
+    } else if (!possiblyOpen && state.devtoolsOpen) {
+      state.devtoolsOpen = false
+      addLog('DevTools 关闭', 'info', '开发者工具可能已关闭')
+    }
+  }, 1000)
+
+  // Method 2: debugger timing
+  function checkDevToolsDebugger() {
+    const start = performance.now()
+    // The debugger statement pauses execution only when DevTools is open
+    // Using Function constructor to avoid linter issues
+    try {
+      const check = new Function('debugger')
+      check()
+    } catch(e) {}
+    const end = performance.now()
+    if (end - start > 100 && !state.devtoolsOpen) {
+      state.devtoolsOpen = true
+      recordViolation('devtools', 'DevTools 检测', `debugger 断点计时检测: 执行延迟 ${(end - start).toFixed(0)}ms (正常 <1ms)`)
+    }
+  }
+  // Run debugger check every 3 seconds
+  setInterval(checkDevToolsDebugger, 3000)
+
+  // ============================
+  // 9. Window resize detection
+  // ============================
+  let resizeTimeout = null
+  window.addEventListener('resize', function() {
+    if (resizeTimeout) clearTimeout(resizeTimeout)
+    resizeTimeout = setTimeout(function() {
+      const newWidth = window.outerWidth
+      const newHeight = window.outerHeight
+      const widthChange = Math.abs(newWidth - state.lastWidth)
+      const heightChange = Math.abs(newHeight - state.lastHeight)
+
+      if (widthChange > 50 || heightChange > 50) {
+        state.resizeCount++
+        updateStat('statResize', state.resizeCount)
+        recordViolation('resize', '窗口大小变化',
+          `窗口尺寸变化: ${state.lastWidth}x${state.lastHeight} → ${newWidth}x${newHeight} (变化: ${widthChange}x${heightChange}px)`)
+        state.lastWidth = newWidth
+        state.lastHeight = newHeight
+      }
+    }, 300)
+  })
+
+  // ============================
+  // 10. beforeunload
+  // ============================
+  window.addEventListener('beforeunload', function(e) {
+    markDetection('beforeunload')
+    addLog('页面离开', 'warn', '检测到尝试离开页面')
+    e.preventDefault()
+    e.returnValue = '确定要离开考试页面吗？离开将被记录为违规行为。'
+    return e.returnValue
+  })
+
+  // ============================
+  // 11. Multi-screen detection
+  // ============================
+  function checkMultiScreen() {
+    const screens = window.screen
+    const availWidth = screens.availWidth
+    const screenWidth = screens.width
+    const windowScreenX = window.screenX || window.screenLeft
+
+    // Check if window is positioned outside the primary screen
+    if (windowScreenX < 0 || windowScreenX > screenWidth) {
+      recordViolation('multiscreen', '多屏幕检测',
+        `窗口位于主屏幕之外 — screenX: ${windowScreenX}, 屏幕宽度: ${screenWidth}`)
+    }
+
+    // Use Screen API if available (newer browsers)
+    if (window.screenDetails || window.getScreenDetails) {
+      const getDetails = window.getScreenDetails || (window.screenDetails && (() => Promise.resolve(window.screenDetails)))
+      if (getDetails) {
+        getDetails.call(window).then(details => {
+          if (details.screens && details.screens.length > 1) {
+            recordViolation('multiscreen', '多屏幕检测',
+              `检测到 ${details.screens.length} 个屏幕 — Screen API 报告`)
+          }
+        }).catch(() => {})
+      }
+    }
+  }
+  // Check once on load
+  setTimeout(checkMultiScreen, 2000)
+
+  // ============================
+  // 12. Additional: Selection detection
+  // ============================
+  document.addEventListener('selectstart', function(e) {
+    // Allow selection in code editor only
+    if (e.target.id !== 'codeEditor' && e.target.closest('.question-desc pre') === null) {
+      e.preventDefault()
+    }
+  })
+
+  // ============================
+  // Initialization
+  // ============================
+  renderDetections()
+  addLog('系统就绪', 'info', '所有 12 项检测已启用，开始监控...')
+  addLog('环境信息', 'info', `${navigator.platform} | ${navigator.userAgent.split(') ')[0]})`)
+
+  // Multi-screen info
+  addLog('屏幕信息', 'info',
+    `屏幕: ${screen.width}x${screen.height} | 可用: ${screen.availWidth}x${screen.availHeight} | 色深: ${screen.colorDepth}bit`)
+
+})()
+</script>
+
+</body>
+</html>

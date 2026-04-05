@@ -35,7 +35,7 @@ export default function HelpPage() {
         {/* Introduction */}
         <HelpSection Icon={Info} title="简介">
           <p className="text-gray-700">
-            欢迎使用解题助手！针对 编码笔试 / 面试
+            欢迎使用你好！针对 编码笔试 / 面试
             场景，该工具可以帮助您快速截图，分析屏幕内容，并给出解题建议。 您可以访问本项目{' '}
             <a
               href="https://github.com/ooboqoo/interview-coder-cn/wiki"

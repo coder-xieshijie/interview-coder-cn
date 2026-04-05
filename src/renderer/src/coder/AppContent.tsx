@@ -87,7 +87,7 @@ export function AppContent() {
       const container = document.getElementById('app-content')
       if (!container) return
       container.scrollTo({
-        top: container.scrollTop - window.innerHeight + SCROLL_OFFSET,
+        top: container.scrollTop - window.innerHeight * 0.2,
         behavior: 'smooth'
       })
     })
@@ -101,7 +101,7 @@ export function AppContent() {
       const container = document.getElementById('app-content')
       if (!container) return
       container.scrollTo({
-        top: container.scrollTop + window.innerHeight - SCROLL_OFFSET,
+        top: container.scrollTop + window.innerHeight * 0.4,
         behavior: 'smooth'
       })
     })

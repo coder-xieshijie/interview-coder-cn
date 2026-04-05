@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: 解题助手
+productName: 你好
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: 解题助手
+  executableName: 你好
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

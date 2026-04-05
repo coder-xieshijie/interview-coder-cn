@@ -9,7 +9,7 @@ export function AppHeader() {
 
   return (
     <div id="app-header" className="flex items-center text-white">
-      <div className="mx-auto pl-12">解题助手</div>
+      <div className="mx-auto pl-12">你好</div>
       <div className={`actions ${ignoreMouse ? 'pointer-events-none' : ''}`}>
         <Button
           variant="ghost"

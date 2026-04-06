@@ -6,11 +6,20 @@ import SettingsPage from '@/settings'
 import HelpPage from '@/help'
 import { useSettingsStore } from '@/lib/store/settings'
 import { useShortcutsStore } from '@/lib/store/shortcuts'
-import { getCloneableFields } from '@/lib/utils'
+import {
+  getCloneableFields,
+  resolveBackgroundColor,
+  resolveCodeBlockBackgroundColor
+} from '@/lib/utils'
 
 export default function App() {
   const [initialized, setInitialized] = useState(false)
   const settingsStore = useSettingsStore()
+  const { backgroundTheme, customBackgroundColor, codeBlockTheme, codeBlockBackgroundMode } =
+    useSettingsStore()
+  const customCodeBlockBackgroundColor = useSettingsStore(
+    (state) => state.customCodeBlockBackgroundColor
+  )
   const { shortcuts } = useShortcutsStore()
 
   useEffect(() => {
@@ -37,6 +46,23 @@ export default function App() {
       window.api.updateAppSettings(getCloneableFields(settingsStore))
     }
   }, [initialized, settingsStore])
+
+  useEffect(() => {
+    const pageBackground = resolveBackgroundColor(backgroundTheme, customBackgroundColor)
+    const codeBlockBackground = resolveCodeBlockBackgroundColor(
+      codeBlockTheme,
+      codeBlockBackgroundMode,
+      customCodeBlockBackgroundColor
+    )
+    document.documentElement.style.setProperty('--page-background', pageBackground)
+    document.documentElement.style.setProperty('--code-block-background', codeBlockBackground)
+  }, [
+    backgroundTheme,
+    customBackgroundColor,
+    codeBlockTheme,
+    codeBlockBackgroundMode,
+    customCodeBlockBackgroundColor
+  ])
 
   useEffect(() => {
     console.log('App initShortcuts:', shortcuts) // DEBUG: 检查新键

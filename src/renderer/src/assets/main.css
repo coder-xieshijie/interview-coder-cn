@@ -18,5 +18,6 @@
 }
 
 #app-content {
-  @apply h-[calc(100vh-36px)] overflow-y-auto bg-gray-500;
+  @apply h-[calc(100vh-36px)] overflow-y-auto;
+  background-color: var(--page-background);
 }

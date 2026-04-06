@@ -15,15 +15,45 @@ import { Slider } from '@/components/ui/slider'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { useSettingsStore } from '@/lib/store/settings'
+import {
+  type BackgroundTheme,
+  type CodeBlockBackgroundMode,
+  type CodeBlockTheme,
+  backgroundThemeOptions,
+  codeBlockThemeOptions,
+  defaultCustomBackgroundColor,
+  defaultCustomCodeBlockBackgroundColor,
+  normalizeHexColor,
+  resolveBackgroundColor,
+  resolveCodeBlockBackgroundColor
+} from '@/lib/utils'
 import { SelectModel } from './SelectModel'
 import { SelectLanguage } from './SelectLanguage'
 import { CustomShortcuts, ResetDefaultShortcuts } from './CustomShortcuts'
 
 export default function SettingsPage() {
-  const { opacity, codeLanguage, apiBaseURL, apiKey, model, customPrompt, updateSetting } =
-    useSettingsStore()
+  const {
+    opacity,
+    codeLanguage,
+    apiBaseURL,
+    apiKey,
+    model,
+    customPrompt,
+    backgroundTheme,
+    customBackgroundColor,
+    codeBlockTheme,
+    codeBlockBackgroundMode,
+    customCodeBlockBackgroundColor,
+    updateSetting
+  } = useSettingsStore()
   const [showApiKey, setShowApiKey] = useState(false)
   const [enableCustomPrompt, setEnableCustomPrompt] = useState(customPrompt.trim().length > 0)
+  const pageBackgroundColor = resolveBackgroundColor(backgroundTheme, customBackgroundColor)
+  const codeBackgroundColor = resolveCodeBlockBackgroundColor(
+    codeBlockTheme,
+    codeBlockBackgroundMode,
+    customCodeBlockBackgroundColor
+  )
 
   useEffect(() => {
     return () => {
@@ -187,6 +217,137 @@ export default function SettingsPage() {
                 <span className="text-xs whitespace-nowrap">不透明</span>
               </div>
             </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <label className="text-sm font-medium">
+                页面背景
+                <span className="ml-2 text-xs font-light">支持明/暗预设，也可自定义调色板</span>
+              </label>
+              <div className="w-60 flex items-center gap-2">
+                <select
+                  value={backgroundTheme}
+                  onChange={(e) =>
+                    updateSetting('backgroundTheme', e.target.value as BackgroundTheme)
+                  }
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {backgroundThemeOptions.map((theme) => (
+                    <option key={theme.value} value={theme.value}>
+                      {theme.label}
+                    </option>
+                  ))}
+                </select>
+                <span
+                  className="h-7 w-7 rounded border border-gray-300"
+                  style={{ backgroundColor: pageBackgroundColor }}
+                  title={pageBackgroundColor}
+                />
+              </div>
+            </div>
+
+            {backgroundTheme === 'custom' && (
+              <div className="flex items-center justify-between gap-4">
+                <label className="text-sm font-medium">
+                  自定义页面背景
+                  <span className="ml-2 text-xs font-light">调色板取色后可直接输入十六进制值</span>
+                </label>
+                <div className="w-60 flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={normalizeHexColor(customBackgroundColor, defaultCustomBackgroundColor)}
+                    onChange={(e) => updateSetting('customBackgroundColor', e.target.value)}
+                    className="h-9 w-14 rounded border border-gray-300 bg-white p-1"
+                  />
+                  <input
+                    type="text"
+                    value={customBackgroundColor}
+                    onChange={(e) => updateSetting('customBackgroundColor', e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="#6b7280"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-4">
+              <label className="text-sm font-medium">
+                代码块主题
+                <span className="ml-2 text-xs font-light">常见明/暗主题：GitHub、Atom One</span>
+              </label>
+              <div className="w-60">
+                <select
+                  value={codeBlockTheme}
+                  onChange={(e) =>
+                    updateSetting('codeBlockTheme', e.target.value as CodeBlockTheme)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {codeBlockThemeOptions.map((theme) => (
+                    <option key={theme.value} value={theme.value}>
+                      {theme.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <label className="text-sm font-medium">
+                代码块背景
+                <span className="ml-2 text-xs font-light">可跟随主题，也可用调色板自定义</span>
+              </label>
+              <div className="w-60 flex items-center gap-2">
+                <select
+                  value={codeBlockBackgroundMode}
+                  onChange={(e) =>
+                    updateSetting(
+                      'codeBlockBackgroundMode',
+                      e.target.value as CodeBlockBackgroundMode
+                    )
+                  }
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="theme">跟随主题</option>
+                  <option value="custom">自定义颜色</option>
+                </select>
+                <span
+                  className="h-7 w-7 rounded border border-gray-300"
+                  style={{ backgroundColor: codeBackgroundColor }}
+                  title={codeBackgroundColor}
+                />
+              </div>
+            </div>
+
+            {codeBlockBackgroundMode === 'custom' && (
+              <div className="flex items-center justify-between gap-4">
+                <label className="text-sm font-medium">
+                  自定义代码块背景
+                  <span className="ml-2 text-xs font-light">支持调色板与手动输入</span>
+                </label>
+                <div className="w-60 flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={normalizeHexColor(
+                      customCodeBlockBackgroundColor,
+                      defaultCustomCodeBlockBackgroundColor
+                    )}
+                    onChange={(e) =>
+                      updateSetting('customCodeBlockBackgroundColor', e.target.value)
+                    }
+                    className="h-9 w-14 rounded border border-gray-300 bg-white p-1"
+                  />
+                  <input
+                    type="text"
+                    value={customCodeBlockBackgroundColor}
+                    onChange={(e) =>
+                      updateSetting('customCodeBlockBackgroundColor', e.target.value)
+                    }
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="#0d1117"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

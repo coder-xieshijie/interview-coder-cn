@@ -1,8 +1,15 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { BackgroundTheme, CodeBlockBackgroundMode, CodeBlockTheme } from '@/lib/utils'
+import {
+  defaultBackgroundTheme,
+  defaultCodeBlockBackgroundMode,
+  defaultCodeBlockTheme,
+  defaultCustomBackgroundColor,
+  defaultCustomCodeBlockBackgroundColor
+} from '@/lib/utils'
 
 interface Settings {
-  // theme: 'light' | 'dark'an
   apiBaseURL: string
   apiKey: string
   model: string
@@ -11,6 +18,11 @@ interface Settings {
 
   opacity: number
   codeLanguage: string
+  backgroundTheme: BackgroundTheme
+  customBackgroundColor: string
+  codeBlockTheme: CodeBlockTheme
+  codeBlockBackgroundMode: CodeBlockBackgroundMode
+  customCodeBlockBackgroundColor: string
 }
 
 interface SettingsStore extends Settings {
@@ -26,7 +38,12 @@ const defaultSettings: Settings = {
   customPrompt: '',
   codeLanguage: '',
 
-  opacity: 0.8
+  opacity: 0.8,
+  backgroundTheme: defaultBackgroundTheme,
+  customBackgroundColor: defaultCustomBackgroundColor,
+  codeBlockTheme: defaultCodeBlockTheme,
+  codeBlockBackgroundMode: defaultCodeBlockBackgroundMode,
+  customCodeBlockBackgroundColor: defaultCustomCodeBlockBackgroundColor
 }
 
 export const useSettingsStore = create<SettingsStore>()(

@@ -3,10 +3,12 @@ import { Pointer, PointerOff, OctagonX, MessageCircle } from 'lucide-react'
 import { useSolutionStore } from '@/lib/store/solution'
 import { useShortcutsStore } from '@/lib/store/shortcuts'
 import { useAppStore } from '@/lib/store/app'
+import { useSettingsStore } from '@/lib/store/settings'
 import ShortcutRenderer from '@/components/ShortcutRenderer'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogTitle, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { cn, isLightColor, resolveBackgroundColor } from '@/lib/utils'
 
 export function AppStatusBar() {
   const {
@@ -16,9 +18,13 @@ export function AppStatusBar() {
     solutionChunks
   } = useSolutionStore()
   const { ignoreMouse } = useAppStore()
+  const { backgroundTheme, customBackgroundColor } = useSettingsStore()
   const { shortcuts } = useShortcutsStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [questionInput, setQuestionInput] = useState('')
+  const isLightBackground = isLightColor(
+    resolveBackgroundColor(backgroundTheme, customBackgroundColor)
+  )
 
   const handleStop = () => {
     setIsLoading(false)
@@ -54,7 +60,12 @@ export function AppStatusBar() {
   const hasActiveConversation = screenshotData && solutionChunks.length > 0
 
   return (
-    <div className="absolute bottom-0 flex items-center justify-between w-full text-blue-100 bg-gray-600/10 px-4 pb-1">
+    <div
+      className={cn(
+        'absolute bottom-0 flex items-center justify-between w-full px-4 pb-1',
+        isLightBackground ? 'text-gray-800 bg-white/40' : 'text-blue-100 bg-gray-600/10'
+      )}
+    >
       <div>
         {isReceivingSolution ? (
           <div className="flex items-center space-x-2">
@@ -76,7 +87,12 @@ export function AppStatusBar() {
             </div>
           </div>
         ) : hasActiveConversation ? (
-          <div className="flex items-center space-x-2 pointer-events-none opacity-50 text-sm gap-1">
+          <div
+            className={cn(
+              'flex items-center space-x-2 pointer-events-none text-sm gap-1',
+              isLightBackground ? 'opacity-70' : 'opacity-50'
+            )}
+          >
             <span>
               <ShortcutRenderer
                 shortcut={shortcuts.appendScreenshot.key}

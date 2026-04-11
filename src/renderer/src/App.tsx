@@ -42,6 +42,15 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    window.api.onSyncAppSettings((settings) => {
+      settingsStore.syncSettings(settings)
+    })
+    return () => {
+      window.api.removeSyncAppSettingsListener()
+    }
+  }, [settingsStore])
+
+  useEffect(() => {
     if (initialized) {
       window.api.updateAppSettings(getCloneableFields(settingsStore))
     }

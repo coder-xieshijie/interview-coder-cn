@@ -24,6 +24,19 @@ const api = {
     ipcRenderer.removeAllListeners('sync-app-state')
   },
 
+  // Listen for app settings
+  onSyncAppSettings: (
+    callback: (settings: Pick<AppSettings, 'apiBaseURL' | 'apiKey' | 'model'>) => void
+  ) => {
+    ipcRenderer.on('sync-app-settings', (_event, settings) => {
+      callback(settings)
+    })
+  },
+  // Remove app settings listener
+  removeSyncAppSettingsListener: () => {
+    ipcRenderer.removeAllListeners('sync-app-settings')
+  },
+
   // Init shortcuts
   initShortcuts: (shortcuts: Record<string, { action: string; key: string }>) =>
     ipcRenderer.invoke('initShortcuts', shortcuts),

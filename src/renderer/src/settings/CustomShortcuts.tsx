@@ -87,6 +87,21 @@ export function CustomShortcuts() {
           <Shortcut label="停止生成" shortcut="stopSolutionStream" />
         </div>
 
+        {/* Model Config */}
+        <div className="space-y-2">
+          <h3 className="text-sm text-gray-500">模型配置</h3>
+          <Shortcut
+            label="切换到 gpt-5.4 预置"
+            description="一键切换 Base URL、API Key 和模型为 gpt-5.4 预置配置"
+            shortcut="switchToGptModelConfig"
+          />
+          <Shortcut
+            label="切换到 qwen3.6-plus 预置"
+            description="一键切换 Base URL、API Key 和模型为 qwen3.6-plus 预置配置"
+            shortcut="switchToQwenModelConfig"
+          />
+        </div>
+
         {/* Navigation */}
         <div className="space-y-2">
           <h3 className="text-sm text-gray-500">页面导航</h3>

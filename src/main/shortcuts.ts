@@ -4,7 +4,7 @@ import type { ModelMessage } from 'ai'
 import { takeScreenshot } from './take-screenshot'
 import { getSolutionStream, getFollowUpStream, getGeneralStream } from './ai'
 import { state } from './state'
-import { settings } from './settings'
+import { settings, gpt54ModelPreset, qwen36PlusModelPreset } from './settings'
 
 /**
  * Extract meaningful error message from API errors
@@ -48,6 +48,12 @@ type Shortcut = {
   key: string
   status: ShortcutStatus
   registeredKeys: string[]
+}
+
+type ModelConfigPreset = {
+  apiBaseURL: string
+  apiKey: string
+  model: string
 }
 
 enum ShortcutStatus {
@@ -116,6 +122,23 @@ function abortCurrentStream(reason: AbortReason) {
   if (!currentStreamContext) return
   currentStreamContext.reason = reason
   currentStreamContext.controller.abort()
+}
+
+function syncSettingsToRenderer() {
+  const mainWindow = global.mainWindow
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  mainWindow.webContents.send('sync-app-settings', {
+    apiBaseURL: settings.apiBaseURL,
+    apiKey: settings.apiKey,
+    model: settings.model
+  })
+}
+
+function switchModelPreset(preset: ModelConfigPreset) {
+  settings.apiBaseURL = preset.apiBaseURL
+  settings.apiKey = preset.apiKey
+  settings.model = preset.model
+  syncSettingsToRenderer()
 }
 
 const callbacks: Record<string, () => void> = {
@@ -370,6 +393,14 @@ const callbacks: Record<string, () => void> = {
     mainWindow.setIgnoreMouseEvents(state.ignoreMouse)
     mainWindow.webContents.send('sync-app-state', state)
   },
+  switchToGptModelConfig: () => {
+    switchModelPreset(gpt54ModelPreset)
+  },
+
+  switchToQwenModelConfig: () => {
+    switchModelPreset(qwen36PlusModelPreset)
+  },
+
   pageUp: () => {
     const mainWindow = global.mainWindow
     if (!mainWindow || mainWindow.isDestroyed() || !state.inCoderPage) return

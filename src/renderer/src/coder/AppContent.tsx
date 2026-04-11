@@ -4,8 +4,6 @@ import { useSolutionStore } from '@/lib/store/solution'
 import MarkdownRenderer from '@/components/MarkdownRenderer'
 import ShortcutRenderer from '@/components/ShortcutRenderer'
 
-const SCROLL_OFFSET = 120
-
 export function AppContent() {
   const {
     screenshotData,

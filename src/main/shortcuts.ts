@@ -1,4 +1,4 @@
-import { globalShortcut, ipcMain } from 'electron'
+import { clipboard, globalShortcut, ipcMain } from 'electron'
 import type { BrowserWindow } from 'electron'
 import type { ModelMessage } from 'ai'
 import { takeScreenshot } from './take-screenshot'
@@ -351,6 +351,13 @@ const callbacks: Record<string, () => void> = {
     }
   },
 
+  openFollowUpDialog: () => {
+    const mainWindow = global.mainWindow
+    if (!mainWindow || mainWindow.isDestroyed() || !state.inCoderPage) return
+    if (conversationMessages.length === 0) return
+    mainWindow.webContents.send('open-follow-up-dialog')
+  },
+
   // Stop current AI solution stream
   stopSolutionStream: () => {
     abortCurrentStream('user')
@@ -484,6 +491,10 @@ ipcMain.handle('stopSolutionStream', () => {
   if (!currentStreamContext) return false
   abortCurrentStream('user')
   return true
+})
+
+ipcMain.handle('getClipboardText', () => {
+  return clipboard.readText()
 })
 
 ipcMain.handle('sendFollowUpQuestion', async (_event, question: string) => {

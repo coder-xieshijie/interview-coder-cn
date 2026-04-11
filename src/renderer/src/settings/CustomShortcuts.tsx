@@ -79,6 +79,11 @@ export function CustomShortcuts() {
             description="在当前对话中追加截图并生成解题建议，适用于长题目等场景"
             shortcut="appendScreenshot"
           />
+          <Shortcut
+            label="追问问题"
+            description="打开追问输入框，默认读取剪贴板内容"
+            shortcut="openFollowUpDialog"
+          />
           <Shortcut label="停止生成" shortcut="stopSolutionStream" />
         </div>
 

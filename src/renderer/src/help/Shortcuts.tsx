@@ -59,6 +59,7 @@ const getShortcutDescription = (action: string) => {
     ignoreOrEnableMouse: '鼠标穿透(窗口对鼠标隐身)',
     takeScreenshot: '截图并生成解题建议（会新开对话）',
     appendScreenshot: '追加截图并生成解题建议',
+    openFollowUpDialog: '打开追问输入框（默认读取剪贴板）',
     stopSolutionStream: '停止生成',
     pageUp: '向上翻页',
     pageDown: '向下翻页',

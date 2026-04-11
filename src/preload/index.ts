@@ -58,8 +58,19 @@ const api = {
   // Stop solution stream
   stopSolutionStream: () => ipcRenderer.invoke('stopSolutionStream'),
 
+  // Read clipboard text
+  getClipboardText: () => ipcRenderer.invoke('getClipboardText'),
+
   // Send follow-up question
   sendFollowUpQuestion: (question: string) => ipcRenderer.invoke('sendFollowUpQuestion', question),
+
+  // Open follow-up dialog from global shortcut
+  onOpenFollowUpDialog: (callback: () => void) => {
+    ipcRenderer.on('open-follow-up-dialog', callback)
+  },
+  removeOpenFollowUpDialogListener: () => {
+    ipcRenderer.removeAllListeners('open-follow-up-dialog')
+  },
 
   // Listen for solution completion
   onSolutionComplete: (callback: () => void) => {

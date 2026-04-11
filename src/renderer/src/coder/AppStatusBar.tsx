@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Pointer, PointerOff, OctagonX, MessageCircle } from 'lucide-react'
 import { useSolutionStore } from '@/lib/store/solution'
 import { useShortcutsStore } from '@/lib/store/shortcuts'
@@ -25,15 +25,28 @@ export function AppStatusBar() {
   const isLightBackground = isLightColor(
     resolveBackgroundColor(backgroundTheme, customBackgroundColor)
   )
+  const hasActiveConversation = screenshotData && solutionChunks.length > 0
 
   const handleStop = () => {
     setIsLoading(false)
     void window.api.stopSolutionStream()
   }
 
-  const handleFollowUpClick = () => {
+  // Default question comes from clipboard to speed up follow-up flow.
+  const fillQuestionFromClipboard = useCallback(async () => {
+    try {
+      const clipboardText = await window.api.getClipboardText()
+      setQuestionInput(clipboardText ?? '')
+    } catch {
+      setQuestionInput('')
+    }
+  }, [])
+
+  const handleOpenFollowUpDialog = useCallback(() => {
+    if (isReceivingSolution || !hasActiveConversation) return
     setIsDialogOpen(true)
-  }
+    void fillQuestionFromClipboard()
+  }, [fillQuestionFromClipboard, hasActiveConversation, isReceivingSolution])
 
   const handleDialogClose = () => {
     setIsDialogOpen(false)
@@ -56,8 +69,15 @@ export function AppStatusBar() {
     }
   }
 
-  // Check if there's an active conversation
-  const hasActiveConversation = screenshotData && solutionChunks.length > 0
+  useEffect(() => {
+    const handleOpenFromShortcut = () => {
+      handleOpenFollowUpDialog()
+    }
+    window.api.onOpenFollowUpDialog(handleOpenFromShortcut)
+    return () => {
+      window.api.removeOpenFollowUpDialogListener()
+    }
+  }, [handleOpenFollowUpDialog])
 
   return (
     <div
@@ -116,12 +136,16 @@ export function AppStatusBar() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleFollowUpClick}
+            onClick={handleOpenFollowUpDialog}
             className="h-7 px-3 text-xs"
             disabled={isReceivingSolution}
           >
             <MessageCircle className="w-4 h-4 mr-1" />
             追问问题
+            <ShortcutRenderer
+              shortcut={shortcuts.openFollowUpDialog.key}
+              className="inline-block scale-75 text-xs border border-current bg-transparent py-0 px-1 ml-1"
+            />
           </Button>
         )}
         {/* Mouse Status Indicator */}
@@ -144,7 +168,15 @@ export function AppStatusBar() {
       </div>
 
       {/* Follow-up Question Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open)
+          if (!open) {
+            setQuestionInput('')
+          }
+        }}
+      >
         <DialogTitle className="sr-only">追问问题</DialogTitle>
         <DialogContent>
           <div className="py-4">

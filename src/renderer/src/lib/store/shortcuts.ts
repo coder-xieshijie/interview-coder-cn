@@ -56,6 +56,11 @@ const defaultShortcuts: Record<string, Omit<Shortcut, 'defaultKey'>> = {
     key: `${platformAlt}+Shift+Enter`,
     category: 'Screenshot & AI'
   },
+  openFollowUpDialog: {
+    action: 'openFollowUpDialog',
+    key: `${platformAlt}+Shift+F`,
+    category: 'Screenshot & AI'
+  },
   stopSolutionStream: {
     action: 'stopSolutionStream',
     key: `${platformAlt}+.`,
@@ -118,7 +123,7 @@ export const useShortcutsStore = create<ShortcutsStore>()(
     }),
     {
       name: 'interview-coder-shortcuts',
-      version: 3,
+      version: 4,
       migrate: (state: unknown, version: number) => {
         if (!isPersistedShortcutsState(state) || !state.shortcuts) return state as ShortcutsStore
         // Merge in any new default shortcuts that are missing

@@ -31,6 +31,31 @@ import { SelectModel } from './SelectModel'
 import { SelectLanguage } from './SelectLanguage'
 import { CustomShortcuts, ResetDefaultShortcuts } from './CustomShortcuts'
 
+type ModelPresetConfig = {
+  id: string
+  label: string
+  apiBaseURL: string
+  apiKey: string
+  model: string
+}
+
+const modelPresetConfigs: ModelPresetConfig[] = [
+  {
+    id: 'gpt-5.4',
+    label: 'gpt-5.4',
+    apiBaseURL: 'https://gmncode.com/v1',
+    apiKey: 'sk-02b3aa569b55ae7b3187e29d83f0568872495bc6b9c4744df2d4d0dea798413b',
+    model: 'gpt-5.4'
+  },
+  {
+    id: 'qwen3.6-plus',
+    label: 'qwen3.6-plus',
+    apiBaseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    apiKey: 'sk-b94919fd83aa4db88814c65c2f60a245',
+    model: 'qwen3.6-plus'
+  }
+]
+
 export default function SettingsPage() {
   const {
     opacity,
@@ -54,6 +79,10 @@ export default function SettingsPage() {
     codeBlockBackgroundMode,
     customCodeBlockBackgroundColor
   )
+  const activeModelPreset = modelPresetConfigs.find(
+    (preset) =>
+      preset.apiBaseURL === apiBaseURL && preset.apiKey === apiKey && preset.model === model
+  )
 
   useEffect(() => {
     return () => {
@@ -67,6 +96,14 @@ export default function SettingsPage() {
       // Clear the custom prompt when switch is turned off
       updateSetting('customPrompt', '')
     }
+  }
+
+  const applyModelPreset = (presetId: string) => {
+    const preset = modelPresetConfigs.find((item) => item.id === presetId)
+    if (!preset) return
+    updateSetting('apiBaseURL', preset.apiBaseURL)
+    updateSetting('apiKey', preset.apiKey)
+    updateSetting('model', preset.model)
   }
 
   return (
@@ -93,6 +130,28 @@ export default function SettingsPage() {
           </h2>
 
           <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <label className="text-sm font-medium">
+                快速切换
+                <span className="ml-2 text-xs font-light">
+                  默认填写 gpt-5.4，支持一键切换预置并继续手动配置
+                </span>
+              </label>
+              <div className="w-60 flex gap-2">
+                {modelPresetConfigs.map((preset) => (
+                  <Button
+                    key={preset.id}
+                    type="button"
+                    variant={activeModelPreset?.id === preset.id ? 'default' : 'outline'}
+                    className="h-9 flex-1"
+                    onClick={() => applyModelPreset(preset.id)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">
                 API Base URL
@@ -105,7 +164,7 @@ export default function SettingsPage() {
                 value={apiBaseURL}
                 onChange={(e) => updateSetting('apiBaseURL', e.target.value)}
                 className="w-60 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="可为空，默认使用 OpenAI 的 API"
+                placeholder="默认 gpt-5.4 预置地址，可手动修改"
               />
             </div>
 

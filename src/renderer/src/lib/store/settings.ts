@@ -30,10 +30,16 @@ interface SettingsStore extends Settings {
   syncSettings: (settings: Partial<Settings>) => void
 }
 
+const defaultModelConfig = {
+  apiBaseURL: 'https://gmncode.com/v1',
+  apiKey: 'sk-02b3aa569b55ae7b3187e29d83f0568872495bc6b9c4744df2d4d0dea798413b',
+  model: 'gpt-5.4'
+}
+
 const defaultSettings: Settings = {
-  apiBaseURL: '',
-  apiKey: '',
-  model: '',
+  apiBaseURL: defaultModelConfig.apiBaseURL,
+  apiKey: defaultModelConfig.apiKey,
+  model: defaultModelConfig.model,
   customModels: [],
   customPrompt: '',
   codeLanguage: '',

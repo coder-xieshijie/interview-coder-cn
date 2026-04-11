@@ -1,5 +1,11 @@
 import { ipcMain } from 'electron'
 
+const defaultModelConfig = {
+  apiBaseURL: 'https://gmncode.com/v1',
+  apiKey: 'sk-02b3aa569b55ae7b3187e29d83f0568872495bc6b9c4744df2d4d0dea798413b',
+  model: 'gpt-5.4'
+}
+
 ipcMain.handle('getAppSettings', () => {
   return settings
 })
@@ -9,9 +15,9 @@ ipcMain.handle('updateAppSettings', (_event, _settings) => {
 })
 
 export const settings = {
-  apiBaseURL: process.env.API_BASE_URL || '',
-  apiKey: process.env.API_KEY || '',
-  model: process.env.MODEL || '',
+  apiBaseURL: process.env.API_BASE_URL || defaultModelConfig.apiBaseURL,
+  apiKey: process.env.API_KEY || defaultModelConfig.apiKey,
+  model: process.env.MODEL || defaultModelConfig.model,
   codeLanguage: process.env.CODE_LANGUAGE || 'typescript',
   customPrompt: '',
   backgroundTheme: process.env.BACKGROUND_THEME || 'gray-dark',

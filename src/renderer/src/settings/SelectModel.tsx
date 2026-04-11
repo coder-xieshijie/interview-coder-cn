@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/command'
 
 const defaultModels = [
+  { value: 'qwen3.6-plus', label: 'qwen3.6-plus' },
   { value: 'Qwen/Qwen3-VL-32B-Instruct', label: 'Qwen/Qwen3-VL-32B-Instruct' },
   { value: 'Qwen/Qwen3-VL-8B-Thinking', label: 'Qwen/Qwen3-VL-8B-Thinking' },
   { value: 'zai-org/GLM-4.6V', label: 'zai-org/GLM-4.6V' },

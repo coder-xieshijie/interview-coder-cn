@@ -53,7 +53,7 @@ export function AppStatusBar() {
     setQuestionInput('')
   }
 
-  const handleSubmitQuestion = async () => {
+  const handleSubmitQuestion = useCallback(async () => {
     if (!questionInput.trim()) return
 
     setIsLoading(true)
@@ -67,7 +67,7 @@ export function AppStatusBar() {
       console.error('Error sending follow-up question:', error)
       setIsLoading(false)
     }
-  }
+  }, [questionInput, setIsLoading])
 
   useEffect(() => {
     const handleOpenFromShortcut = () => {
@@ -78,6 +78,15 @@ export function AppStatusBar() {
       window.api.removeOpenFollowUpDialogListener()
     }
   }, [handleOpenFollowUpDialog])
+
+  useEffect(() => {
+    window.api.onSubmitFollowUp(() => {
+      handleSubmitQuestion()
+    })
+    return () => {
+      window.api.removeSubmitFollowUpListener()
+    }
+  }, [handleSubmitQuestion])
 
   return (
     <div

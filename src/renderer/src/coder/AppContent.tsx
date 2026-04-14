@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useShortcutsStore } from '@/lib/store/shortcuts'
 import { useSolutionStore } from '@/lib/store/solution'
 import MarkdownRenderer from '@/components/MarkdownRenderer'
-import ShortcutRenderer from '@/components/ShortcutRenderer'
 
 export function AppContent() {
   const {
@@ -169,7 +167,7 @@ export function AppContent() {
           />
         </div>
       ) : (
-        <ShortcutTip />
+        null
       )}
 
       {/* Solution Display */}
@@ -178,16 +176,3 @@ export function AppContent() {
   )
 }
 
-function ShortcutTip() {
-  const { shortcuts } = useShortcutsStore()
-  return (
-    <div className="flex items-center justify-center h-full text-xl text-gray-400 select-none">
-      请按下快捷键
-      <ShortcutRenderer
-        shortcut={shortcuts.takeScreenshot.key}
-        className="mx-1 font-bold text-black"
-      />
-      抓取屏幕进行分析
-    </div>
-  )
-}

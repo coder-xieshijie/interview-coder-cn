@@ -62,6 +62,7 @@ const getShortcutDescription = (action: string) => {
     takeScreenshot: '截图并生成解题建议（会新开对话）',
     appendScreenshot: '追加截图并生成解题建议',
     openFollowUpDialog: '打开追问输入框（默认读取剪贴板）',
+    submitFollowUp: '提交追问（弹窗打开时提交内容）',
     stopSolutionStream: '停止生成',
     switchToGptModelConfig: '切换到 gpt-5.4 预置',
     switchToQwenModelConfig: '切换到 qwen3.6-plus 预置',

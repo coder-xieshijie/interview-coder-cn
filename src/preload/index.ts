@@ -85,6 +85,14 @@ const api = {
     ipcRenderer.removeAllListeners('open-follow-up-dialog')
   },
 
+  // Submit follow-up with clipboard content from global shortcut
+  onSubmitFollowUp: (callback: () => void) => {
+    ipcRenderer.on('submit-follow-up', callback)
+  },
+  removeSubmitFollowUpListener: () => {
+    ipcRenderer.removeAllListeners('submit-follow-up')
+  },
+
   // Listen for solution completion
   onSolutionComplete: (callback: () => void) => {
     ipcRenderer.on('solution-complete', callback)

@@ -84,6 +84,11 @@ export function CustomShortcuts() {
             description="打开追问输入框，默认读取剪贴板内容"
             shortcut="openFollowUpDialog"
           />
+          <Shortcut
+            label="提交追问"
+            description="追问弹窗打开时，直接提交内容"
+            shortcut="submitFollowUp"
+          />
           <Shortcut label="停止生成" shortcut="stopSolutionStream" />
         </div>
 

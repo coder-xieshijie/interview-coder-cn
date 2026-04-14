@@ -381,6 +381,13 @@ const callbacks: Record<string, () => void> = {
     mainWindow.webContents.send('open-follow-up-dialog')
   },
 
+  submitFollowUp: () => {
+    const mainWindow = global.mainWindow
+    if (!mainWindow || mainWindow.isDestroyed() || !state.inCoderPage) return
+    if (conversationMessages.length === 0) return
+    mainWindow.webContents.send('submit-follow-up')
+  },
+
   // Stop current AI solution stream
   stopSolutionStream: () => {
     abortCurrentStream('user')
@@ -546,8 +553,9 @@ ipcMain.handle('sendFollowUpQuestion', async (_event, question: string) => {
   }
   currentStreamContext = streamContext
 
-  // Add a separator before the follow-up response
+  // Add a separator and show the follow-up question before the response
   mainWindow.webContents.send('solution-chunk', '\n\n---\n\n')
+  mainWindow.webContents.send('solution-chunk', `**追问：** ${question}\n\n`)
 
   let endedNaturally = true
   let streamStarted = false

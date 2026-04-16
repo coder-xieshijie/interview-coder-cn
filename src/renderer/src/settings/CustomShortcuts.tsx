@@ -90,6 +90,11 @@ export function CustomShortcuts() {
             shortcut="submitFollowUp"
           />
           <Shortcut label="停止生成" shortcut="stopSolutionStream" />
+          <Shortcut
+            label="清空对话"
+            description="清空当前对话历史和截图"
+            shortcut="clearConversation"
+          />
         </div>
 
         {/* Model Config */}

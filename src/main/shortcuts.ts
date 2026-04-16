@@ -393,6 +393,18 @@ const callbacks: Record<string, () => void> = {
     abortCurrentStream('user')
   },
 
+  // Clear conversation history and reset UI
+  clearConversation: () => {
+    const mainWindow = global.mainWindow
+    if (!mainWindow || mainWindow.isDestroyed() || !state.inCoderPage) return
+    abortCurrentStream('new-request')
+    conversationMessages = []
+    recentScreenshots = []
+    hasAppendSeparator = false
+    mainWindow.webContents.send('solution-clear')
+    mainWindow.webContents.send('screenshots-updated', [])
+  },
+
   ignoreOrEnableMouse: () => {
     const mainWindow = global.mainWindow
     if (!mainWindow || mainWindow.isDestroyed() || !state.inCoderPage) return

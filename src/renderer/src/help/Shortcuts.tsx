@@ -64,6 +64,7 @@ const getShortcutDescription = (action: string) => {
     openFollowUpDialog: '打开追问输入框（默认读取剪贴板）',
     submitFollowUp: '提交追问（弹窗打开时提交内容）',
     stopSolutionStream: '停止生成',
+    clearConversation: '清空对话历史',
     switchToGptModelConfig: '切换到 gpt-5.4 预置',
     switchToQwenModelConfig: '切换到 qwen3.6-plus 预置',
     pageUp: '向上翻页',

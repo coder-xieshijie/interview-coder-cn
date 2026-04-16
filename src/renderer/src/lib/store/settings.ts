@@ -42,7 +42,7 @@ const defaultSettings: Settings = {
   model: defaultModelConfig.model,
   customModels: [],
   customPrompt: '',
-  codeLanguage: '',
+  codeLanguage: 'java-jdk1.8',
 
   opacity: 0.8,
   backgroundTheme: defaultBackgroundTheme,
@@ -65,7 +65,7 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: 'interview-coder-settings',
-      version: 5
+      version: 6
     }
   )
 )

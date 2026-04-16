@@ -71,6 +71,11 @@ const defaultShortcuts: Record<string, Omit<Shortcut, 'defaultKey'>> = {
     key: `${platformAlt}+.`,
     category: 'Screenshot & AI'
   },
+  clearConversation: {
+    action: 'clearConversation',
+    key: `${platformAlt}+Shift+D`,
+    category: 'Screenshot & AI'
+  },
   switchToGptModelConfig: {
     action: 'switchToGptModelConfig',
     key: 'Alt+1',
@@ -138,7 +143,7 @@ export const useShortcutsStore = create<ShortcutsStore>()(
     }),
     {
       name: 'interview-coder-shortcuts',
-      version: 6,
+      version: 7,
       migrate: (state: unknown, version: number) => {
         if (!isPersistedShortcutsState(state) || !state.shortcuts) return state as ShortcutsStore
         // Merge in any new default shortcuts that are missing

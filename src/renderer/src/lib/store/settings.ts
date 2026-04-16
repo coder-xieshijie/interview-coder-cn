@@ -65,7 +65,7 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: 'interview-coder-settings',
-      version: 4
+      version: 5
     }
   )
 )

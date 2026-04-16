@@ -251,3 +251,7 @@ These are read by dotenv in the main process and merged with renderer-side setti
 7. **Window movement**: The window can be moved via keyboard shortcuts in 200px steps (up/down/left/right).
 
 8. **macOS auto-update is disabled**: `publish: null` in electron-builder.yml for mac target. Auto-update only works on Windows.
+
+9. **Before building a release**: Two version bumps are required:
+   - `package.json` → bump `version` (e.g. `1.6.3` → `1.6.4`) so Windows auto-updater recognizes the new release.
+   - `src/renderer/src/lib/store/settings.ts` → bump the Zustand persist `version` number so existing users' localStorage is cleared and new default settings take effect. Without this, existing users keep their old persisted config even after updating the app.
